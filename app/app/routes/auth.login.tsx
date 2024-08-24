@@ -9,6 +9,7 @@ import { TextField } from "../components/TextField";
 import { authenticator } from "../services/auth.server";
 import { loginValidator } from "../types/validators/LoginValidator";
 import { Link } from "@remix-run/react";
+import { GoogleForm } from "../components/GoogleForm";
 
 export const meta: MetaFunction = () => {
   return [{ title: "New Remix App login" }];
@@ -36,10 +37,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  return authenticator.authenticate("user-pass", request, {
-    successRedirect: "/",
-    failureRedirect: "/auth/login",
-  });
+  const formData = await request.clone().formData();
+  const action = String(formData.get("_action"));
+
+  switch (action) {
+    case "Sign In":
+      return authenticator.authenticate("user-pass", request, {
+        successRedirect: "/",
+        failureRedirect: "/auth/login",
+      });
+
+    case "Sign In Google":
+      return authenticator.authenticate("google", request);
+
+    default:
+      return null;
+  }
 };
 
 const LoginPage = () => {
@@ -63,6 +76,7 @@ const LoginPage = () => {
             </button>
           </div>
         </ValidatedForm>
+        <GoogleForm />
       </div>
       <p className={text()}>
         Don&apos;t have an account?
